@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+  load_wire_printer_server:
+    container_name: load_wire_printer_server
+    build: .
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+    env_file:
+      - .env
+    networks:
+      - load_wire_network
+    privileged: true
+networks:
+  load_wire_network:
+    external:
+      name: load_wire_network
