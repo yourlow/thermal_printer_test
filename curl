@@ -1,0 +1,13 @@
+curl --location --request POST 'http://localhost:9000' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "load_id": "hello world",
+    "timestamp": "time",
+    "customer": {
+        "name": "matt"
+    },
+    "product": {
+        "name": "test"
+    }
+
+}'
