@@ -12,12 +12,13 @@ mysql_connection = mysql.connector.connect(
   user="doadmin",
   password="bkoyee0cmuewh3if",
   database="loadmaster_prod"
+  isolation_level='READ COMMITTED'
 )
 
 def job():
 
     # Create a new cursor
-    cursor = mysql_connection.cursor(dictionary=True, buffered=True)
+    cursor = mysql_connection.cursor(dictionary=True)
 
     # Query the MySQL database
     cursor.execute(f"""SELECT * FROM `Detailed Records` WHERE printed = 0""")
