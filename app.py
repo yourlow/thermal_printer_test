@@ -11,8 +11,7 @@ mysql_connection = mysql.connector.connect(
   port=25060,
   user="doadmin",
   password="bkoyee0cmuewh3if",
-  database="loadmaster_prod",
-  isolation_level='READ COMMITTED'
+  database="loadmaster_prod"
 )
 
 def job():
@@ -31,6 +30,8 @@ def job():
 
         cursor.execute('UPDATE record SET printed = 1 WHERE JobNumber = %s', (jobnumber,))
         mysql_connection.commit()
+    
+    cursor.close()
 
 def print_driver_docket(record):
     try:
