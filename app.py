@@ -16,21 +16,28 @@ mysql_connection = mysql.connector.connect(
 
 def job():
 
+    mysql_connection.start_transaction(isolation_level='READ COMMITTED')
     # Create a new cursor
     cursor = mysql_connection.cursor(dictionary=True)
 
     # Query the MySQL database
     cursor.execute(f"""SELECT * FROM `Detailed Records` WHERE printed = 0""")
 
+    jobnumbers_to_update = []
+    
     # Iterate over each record
     for record in cursor:
         jobnumber = record['JobNumber']
         print_driver_docket(record)
         print_customer_docket(record)
 
+        jobnumbers_to_update.append(jobnumber)
+
+    # Update all records outside the loop
+    for jobnumber in jobnumbers_to_update:
         cursor.execute('UPDATE record SET printed = 1 WHERE JobNumber = %s', (jobnumber,))
-        mysql_connection.commit()
-    
+
+    mysql_connection.commit()
     cursor.close()
 
 def print_driver_docket(record):
