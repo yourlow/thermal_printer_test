@@ -11,7 +11,7 @@ mysql_connection = mysql.connector.connect(
   port=25060,
   user="doadmin",
   password="bkoyee0cmuewh3if",
-  database="loadmaster_prod"
+  database="loadmaster_prod",
   isolation_level='READ COMMITTED'
 )
 
