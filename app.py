@@ -1,12 +1,9 @@
 import mysql.connector
 import schedule
 import time
-from datetime import datetime, timedelta
 from escpos.printer import Usb
 from escpos.constants import PAPER_PART_CUT
-from dotenv import load_dotenv
-import os
-load_dotenv()
+
 
 # Connect to the MySQL database
 mysql_connection = mysql.connector.connect(
@@ -17,19 +14,7 @@ mysql_connection = mysql.connector.connect(
   database="loadmaster_prod"
 )
 
-
-mysql_connection = mysql.connector.connect(
-  host=os.getenv("DB_HOST"),
-  port=os.getenv("DB_PORT"),
-  user=os.getenv("DB_USER"),
-  password=os.getenv("DB_PASSWORD"),
-  database=os.getenv("DB_DATABASE")
-)
-
 def job():
-    # Get current time and 5 minutes ago
-    now = datetime.now()
-    five_mins_ago = now - timedelta(minutes=400)
 
     # Create a new cursor
     cursor = mysql_connection.cursor(dictionary=True)
@@ -40,8 +25,8 @@ def job():
     # Iterate over each record
     for record in cursor:
         jobnumber = record['JobNumber']
-        # print_driver_docket(record)
-        # print_customer_docket(record)
+        print_driver_docket(record)
+        print_customer_docket(record)
 
         cursor.execute('UPDATE record SET printed = 1 WHERE JobNumber = %s', (jobnumber,))
         mysql_connection.commit()
@@ -63,11 +48,10 @@ def print_driver_docket(record):
         printer.text(f"Unit Weight: {record['UnitWeight']} t\n")
         printer.text(f"Product: {record['product_name']}\n")
         printer.text(f"Customer: {record['customer_name']}\n")
+        printer.text(f"Destination: {record['destination_name']}\n")
         printer.text(f"Haulier: {record['haulier_name']}\n")
         printer.text(f"Truck: {record['truck_name']}\n")
         printer.text(f"CA:{record['note']}\n")
-
-
 
         printer._raw(bytes([10]))
         printer.image("./logoReduced.jpg")
@@ -100,8 +84,6 @@ def print_customer_docket(record):
         printer.text(f"Haulier: {record['haulier_name']}\n")
         printer.text(f"Truck: {record['truck_name']}\n")
         printer.text(f"CA:{record['note']}\n")
-
-
 
         printer._raw(bytes([10]))
         printer.image("./logoReduced.jpg")
