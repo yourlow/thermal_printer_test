@@ -1,11 +1,12 @@
 import mysql.connector
-import sqlite3
 import schedule
 import time
 from datetime import datetime, timedelta
 from escpos.printer import Usb
 from escpos.constants import PAPER_PART_CUT
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 # Connect to the MySQL database
 mysql_connection = mysql.connector.connect(
@@ -16,42 +17,34 @@ mysql_connection = mysql.connector.connect(
   database="loadmaster_prod"
 )
 
-# Connect to the SQLite database
-sqlite_connection = sqlite3.connect('sqlite_database.db')
-sqlite_cursor = sqlite_connection.cursor()
 
-# Create a table in SQLite if it doesn't exist
-sqlite_cursor.execute('''CREATE TABLE IF NOT EXISTS record
-                         (jobnumber INTEGER PRIMARY KEY)''')
+mysql_connection = mysql.connector.connect(
+  host=os.getenv("DB_HOST"),
+  port=os.getenv("DB_PORT"),
+  user=os.getenv("DB_USER"),
+  password=os.getenv("DB_PASSWORD"),
+  database=os.getenv("DB_DATABASE")
+)
 
 def job():
     # Get current time and 5 minutes ago
     now = datetime.now()
-    five_mins_ago = now - timedelta(minutes=120)
+    five_mins_ago = now - timedelta(minutes=400)
 
     # Create a new cursor
     cursor = mysql_connection.cursor(dictionary=True)
 
     # Query the MySQL database
-    cursor.execute(f"""SELECT * FROM `Detailed Records` WHERE EndTimeDate >= '{five_mins_ago.strftime('%Y-%m-%d %H:%M:%S')}' AND EndTimeDate <= '{now.strftime('%Y-%m-%d %H:%M:%S')}'""")
+    cursor.execute(f"""SELECT * FROM `Detailed Records` WHERE printed = 0""")
 
     # Iterate over each record
     for record in cursor:
         jobnumber = record['JobNumber']
-        
-        # Check if jobnumber is in SQLite
-        sqlite_cursor.execute('SELECT * FROM record WHERE jobnumber = ?', (jobnumber,))
-        sqlite_record = sqlite_cursor.fetchone()
+        # print_driver_docket(record)
+        # print_customer_docket(record)
 
-        # If jobnumber is not in SQLite, print docket and add to SQLite
-        if sqlite_record is None:
-            print_driver_docket(record)
-            print_customer_docket(record)
-
-            exit()
-            sqlite_cursor.execute('INSERT INTO record VALUES (?)', (jobnumber,))
-            sqlite_connection.commit()
-
+        cursor.execute('UPDATE record SET printed = 1 WHERE JobNumber = %s', (jobnumber,))
+        mysql_connection.commit()
 
 def print_driver_docket(record):
     try:
