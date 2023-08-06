@@ -17,7 +17,7 @@ mysql_connection = mysql.connector.connect(
 def job():
 
     # Create a new cursor
-    cursor = mysql_connection.cursor(dictionary=True)
+    cursor = mysql_connection.cursor(dictionary=True, buffered=True)
 
     # Query the MySQL database
     cursor.execute(f"""SELECT * FROM `Detailed Records` WHERE printed = 0""")
