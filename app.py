@@ -47,7 +47,7 @@ def job():
     cursor.close()
 
 
-def print_docket_details(printer, record):
+def print_docket_details(printer: Usb, record) -> None:
     printer.text(f"Job Number: {record['JobNumber']}\n")
     printer.text(f"Load Time: {record['EndTimeDate']}\n")
     printer.text(f"Unit Weight: {record['UnitWeight']} t\n")
@@ -57,6 +57,14 @@ def print_docket_details(printer, record):
     printer.text(f"Haulier: {record['haulier_name']}\n")
     printer.text(f"Truck: {record['truck_name']}\n")
     printer.text(f"CA:{record['note']}\n")
+
+
+def print_spacing(printer: Usb, spacing: int) -> None:
+    for i in range(10):
+        printer._raw(bytes([10]))
+
+def cut_docket(printer: Usb) -> None:
+    printer._raw(bytes([29, 86, 1, 19]))
 
 
 def print_driver_docket(record):
@@ -75,10 +83,8 @@ def print_driver_docket(record):
 
         printer._raw(bytes([10]))
         printer.image(logoImage)
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([29, 86, 1, 19]))
+        print_spacing(printer, 3)
+        cut_docket(printer)
 
     except Exception as e:
         print(e, flush=True)
@@ -100,19 +106,8 @@ def print_customer_docket(record):
 
         printer._raw(bytes([10]))
         printer.image(logoImage)
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([10]))
-        printer._raw(bytes([29, 86, 1, 19]))
+        print_spacing(printer, 10)
+        cut_docket(printer)
 
     except Exception as e:
         print(e, flush=True)
