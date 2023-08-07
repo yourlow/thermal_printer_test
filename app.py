@@ -3,7 +3,13 @@ import schedule
 import time
 from escpos.printer import Usb
 from escpos.constants import PAPER_PART_CUT
+import os
 
+# Determine the directory of the current script
+script_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the relative path
+logoImage = os.path.join(script_directory, './logoReduced.jpg')
 
 # Connect to the MySQL database
 mysql_connection = mysql.connector.connect(
@@ -63,7 +69,7 @@ def print_driver_docket(record):
         printer.text(f"CA:{record['note']}\n")
 
         printer._raw(bytes([10]))
-        printer.image("./logoReduced.jpg")
+        printer.image(logoImage)
         printer._raw(bytes([10]))
         printer._raw(bytes([10]))
         printer._raw(bytes([10]))
@@ -95,7 +101,7 @@ def print_customer_docket(record):
         printer.text(f"CA:{record['note']}\n")
 
         printer._raw(bytes([10]))
-        printer.image("./logoReduced.jpg")
+        printer.image(logoImage)
         printer._raw(bytes([10]))
         printer._raw(bytes([10]))
         printer._raw(bytes([10]))
