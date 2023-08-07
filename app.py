@@ -46,6 +46,19 @@ def job():
     mysql_connection.commit()
     cursor.close()
 
+
+def print_docket_details(printer, record):
+    printer.text(f"Job Number: {record['JobNumber']}\n")
+    printer.text(f"Load Time: {record['EndTimeDate']}\n")
+    printer.text(f"Unit Weight: {record['UnitWeight']} t\n")
+    printer.text(f"Product: {record['product_name']}\n")
+    printer.text(f"Customer: {record['customer_name']}\n")
+    printer.text(f"Destination: {record['destination_name']}\n")
+    printer.text(f"Haulier: {record['haulier_name']}\n")
+    printer.text(f"Truck: {record['truck_name']}\n")
+    printer.text(f"CA:{record['note']}\n")
+
+
 def print_driver_docket(record):
     try:
         printer = Usb(idVendor=0x03F0, idProduct=0x0E69, in_ep=0x82, out_ep=0x02)
@@ -58,15 +71,7 @@ def print_driver_docket(record):
             flip=False)
         
         printer.line_spacing(90)
-        printer.text(f"Job Number: {record['JobNumber']}\n")
-        printer.text(f"Load Time: {record['EndTimeDate']}\n")
-        printer.text(f"Unit Weight: {record['UnitWeight']} t\n")
-        printer.text(f"Product: {record['product_name']}\n")
-        printer.text(f"Customer: {record['customer_name']}\n")
-        printer.text(f"Destination: {record['destination_name']}\n")
-        printer.text(f"Haulier: {record['haulier_name']}\n")
-        printer.text(f"Truck: {record['truck_name']}\n")
-        printer.text(f"CA:{record['note']}\n")
+        print_docket_details(printer, record)
 
         printer._raw(bytes([10]))
         printer.image(logoImage)
@@ -91,17 +96,19 @@ def print_customer_docket(record):
             flip=False)
         
         printer.line_spacing(90)
-        printer.text(f"Job Number: {record['JobNumber']}\n")
-        printer.text(f"Load Time: {record['EndTimeDate']}\n")
-        printer.text(f"Unit Weight: {record['UnitWeight']} t\n")
-        printer.text(f"Product: {record['product_name']}\n")
-        printer.text(f"Customer: {record['customer_name']}\n")
-        printer.text(f"Haulier: {record['haulier_name']}\n")
-        printer.text(f"Truck: {record['truck_name']}\n")
-        printer.text(f"CA:{record['note']}\n")
+        print_docket_details(printer, record)
 
         printer._raw(bytes([10]))
         printer.image(logoImage)
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
         printer._raw(bytes([10]))
         printer._raw(bytes([10]))
         printer._raw(bytes([10]))
@@ -117,10 +124,13 @@ def print_docket(record):
 
         printer.text(f"Job Number: {record['JobNumber']}\n")
         printer.text(f"Load Time: {record['EndTimeDate']}\n")
-        printer.text(f"Unit Weight: {record['UnitWeight']}\n")
-        printer.text(f"Customer: {record['customer_name']}\n")
+        printer.text(f"Unit Weight: {record['UnitWeight']} t\n")
         printer.text(f"Product: {record['product_name']}\n")
-        printer.text(f"Hauiler: {record['haulier_name']}\n")
+        printer.text(f"Customer: {record['customer_name']}\n")
+        printer.text(f"Destination: {record['destination_name']}\n")
+        printer.text(f"Haulier: {record['haulier_name']}\n")
+        printer.text(f"Truck: {record['truck_name']}\n")
+        printer.text(f"CA:{record['note']}\n")
 
         printer.text("--------------------------------\n")
 
@@ -129,6 +139,8 @@ def print_docket(record):
         printer._raw(bytes([10]))
 
         printer.image("./logoReduced.jpg")
+        printer._raw(bytes([10]))
+        printer._raw(bytes([10]))
         printer._raw(bytes([10]))
         printer._raw(bytes([10]))
         printer._raw(bytes([10]))
