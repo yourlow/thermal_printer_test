@@ -124,7 +124,7 @@ def print_docket_details(printer: Usb, record) -> None:
     printer.text(f"CA:{record['note']}\n")
 
 
-def print_spacing(printer: Usb, spacing: int) -> None:
+def print_lines(printer: Usb, spacing: int) -> None:
     for i in range(spacing):
         printer._raw(bytes([10]))
 
@@ -156,7 +156,7 @@ def print_driver_docket(record):
 
         printer._raw(bytes([10]))
         printer.image(logoImage)
-        print_spacing(printer, 3)
+        print_lines(printer, 3)
         cut_docket(printer)
 
     except Exception as e:
@@ -178,8 +178,10 @@ def print_customer_docket(record):
         print_docket_details(printer, record)
 
         printer._raw(bytes([10]))
-        print_spacing(printer, 20)
+        print_lines(printer, 20)
         printer.image(logoImage)
+        print_lines(printer, 5)
+
         cut_docket(printer)
 
     except Exception as e:
