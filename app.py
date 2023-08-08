@@ -67,7 +67,7 @@ else:
     exit()
 
 
-
+one_docket = ["Nucon Transport", "Boral Transport", "Hanson"]
 
 def job():
     # logging.info("Checking Database")
@@ -87,18 +87,20 @@ def job():
 
             #@Todo check each record for errors
             try:
+                
 
-                logging.info(f"Printing Driver Docket for JobNumber: {record['JobNumber']}")
-                print_driver_docket(record)
-                logging.info(f"Printing Customer Docket for JobNumber: {record['JobNumber']}")
-                print_customer_docket(record)
+                if(record['haulier_name'] in one_docket):
+                    logging.info(f"Printing Single Docket ${record['haulier_name']}, JobNumber: {record['JobNumber']}")
+                    print_plant_docket(record)
+                else:
+                    logging.info(f"Printing Driver Docket for JobNumber: {record['JobNumber']}")
+                    print_driver_docket(record)
+                    logging.info(f"Printing Customer Docket for JobNumber: {record['JobNumber']}")
+                    print_plant_docket(record)
                 jobnumber = record['JobNumber']
-                jobnumbers_to_update.append(jobnumber)
-
                 logging.info("Finished Printing, Updating Database")
-                # Update all records outside the loop
-                for jobnumber in jobnumbers_to_update:
-                    cursor.execute('UPDATE record SET printed = 1 WHERE JobNumber = %s', (jobnumber,))
+
+                cursor.execute('UPDATE record SET printed = 1 WHERE JobNumber = %s', (jobnumber,))
 
             except:
                 logging.error(f"Failed to print JobNumber: {record['JobNumber']}")
@@ -163,12 +165,12 @@ def print_driver_docket(record):
         logging.error(f"Failed to print driver docket, {e}")
         raise e
 
-def print_customer_docket(record):
+def print_plant_docket(record):
     try:
         printer = Usb(idVendor=0x03F0, idProduct=0x0E69, in_ep=0x82, out_ep=0x02)
         printer.set(align='center', text_type='B', width=2, height=2)
 
-        printer.text(f"Customer Docket\n")
+        printer.text(f"Plant Docket\n")
         printer.text("------------------------\n")
 
         printer.set(align='left', font='a', text_type='normal', width=1, height=1, density=9, invert=False, smooth=False,
