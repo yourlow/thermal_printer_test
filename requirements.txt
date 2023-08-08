@@ -5,6 +5,7 @@ Pillow==10.0.0
 protobuf==4.21.12
 pypng==0.20220715.0
 pyserial==3.5
+python-dotenv==1.0.0
 python-escpos==2.2.0
 pyusb==1.2.1
 PyYAML==6.0.1
