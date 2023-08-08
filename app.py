@@ -179,7 +179,7 @@ def print_customer_docket(record):
 
         printer._raw(bytes([10]))
         printer.image(logoImage)
-        print_spacing(printer, 10)
+        print_spacing(printer, 20)
         cut_docket(printer)
 
     except Exception as e:
