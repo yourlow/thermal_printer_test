@@ -177,8 +177,7 @@ def print_plant_docket(record):
         printer.line_spacing(90)
         print_docket_details(printer, record)
 
-        printer._raw(bytes([10]))
-        print_lines(printer, 20)
+        print_lines(printer, 10)
         printer.image(logoImage)
         print_lines(printer, 5)
 
