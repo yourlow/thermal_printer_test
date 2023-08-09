@@ -67,7 +67,7 @@ else:
     exit()
 
 
-one_docket = ["Nucon Transport", "Boral Transport", "Hanson"]
+two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd"]
 
 def job():
     # logging.info("Checking Database")
@@ -87,15 +87,13 @@ def job():
 
             #@Todo check each record for errors
             try:
-                
-
-                if(record['haulier_name'] in one_docket):
-                    logging.info(f"Printing Single Docket ${record['haulier_name']}, JobNumber: {record['JobNumber']}")
-                    print_plant_docket(record)
-                else:
+                if(record['haulier_name'] in two_dockets):
                     logging.info(f"Printing Driver Docket for JobNumber: {record['JobNumber']}")
                     print_driver_docket(record)
                     logging.info(f"Printing Customer Docket for JobNumber: {record['JobNumber']}")
+                    print_plant_docket(record)
+                else:
+                    logging.info(f"Printing Single Docket ${record['haulier_name']}, JobNumber: {record['JobNumber']}")
                     print_plant_docket(record)
                 jobnumber = record['JobNumber']
                 logging.info("Finished Printing, Updating Database")
