@@ -7,6 +7,8 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 import logging
+import printer_status
+
 load_dotenv()
 
 def check_env():
@@ -46,6 +48,7 @@ check_env()
 
 
 
+
 try:
     mysql_connection = mysql.connector.connect(
     host=os.getenv("DB_HOST"),
@@ -67,7 +70,7 @@ else:
     exit()
 
 
-two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd"]
+two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd", "AJH", "Skykes Haulage"]
 
 def job():
     # logging.info("Checking Database")
@@ -185,6 +188,11 @@ def print_plant_docket(record):
 
     except Exception as e:
         print(e, flush=True)
+
+
+
+
+
 
 
 logging.info("Starting Scheduler")
