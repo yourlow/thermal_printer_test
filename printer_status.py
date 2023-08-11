@@ -7,7 +7,7 @@ def check_printer(printer: Usb):
     pass
 
 
-    is_printer_closed(printer)
+
 
 
 def is_cover_closed(printer: Usb):
