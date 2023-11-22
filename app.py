@@ -71,7 +71,7 @@ else:
 
 
 two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd", "AJH", "Skykes Haulage"]
-
+two_dockets_trucks = ["XQ28VM", "XN56UJ", "XO82LW"]
 def job():
     # logging.info("Checking Database")
     mysql_connection.start_transaction(isolation_level='READ COMMITTED')
@@ -90,7 +90,7 @@ def job():
 
             #@Todo check each record for errors
             try:
-                if(record['haulier_name'] in two_dockets):
+                if(record['haulier_name'] in two_dockets or record['truck_name'] in two_dockets_trucks):
                     logging.info(f"Printing Driver Docket for JobNumber: {record['JobNumber']}")
                     print_driver_docket(record)
                     logging.info(f"Printing Customer Docket for JobNumber: {record['JobNumber']}")
