@@ -8,24 +8,25 @@ from dotenv import load_dotenv
 from datetime import datetime
 import logging
 import printer_status
+import redis
 
 load_dotenv()
 
 def check_env():
-    if os.getenv("DB_HOST") is None:
-        logging.error("DB_HOST not set")
+    if os.getenv("REDIS_HOST") is None:
+        logging.error("REDIS_HOST not set")
         exit(1)
-    if os.getenv("DB_PORT") is None:
-        logging.error("DB_PORT not set")
+    if os.getenv("REDIS_PORT") is None:
+        logging.error("REDIS_PORT not set")
         exit(1)
-    if os.getenv("DB_USER") is None:
-        logging.error("DB_USER not set")
+    if os.getenv("REDIS_USER") is None:
+        logging.error("REDIS_USER not set")
         exit(1)
-    if os.getenv("DB_PASSWORD") is None:
-        logging.error("DB_PASSWORD not set")
+    if os.getenv("REDIS_PASSWORD") is None:
+        logging.error("REDIS_PASSWORD not set")
         exit(1)
-    if os.getenv("DB_DATABASE") is None:
-        logging.error("DB_DATABASE not set")
+    if os.getenv("REDIS_QUEUE") is None:
+        logging.error("REDIS_DATABASE not set")
         exit(1)
 
 
@@ -33,7 +34,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
                     level=logging.INFO, 
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-logging.info("Starting Printer Service")
+logging.info("Starting Kingscliff Sands Thermal Printer")
 # Determine the directory of the current script
 script_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -47,70 +48,59 @@ logging.info("Connecting to Database")
 check_env()
 
 
+r = redis.Redis(host=os.getenv("REDIS_HOST"),
+                port=os.getenv("REDIS_PORT"),
+                db=0,
+                password=os.getenv("REDIS_PASSWORD"),
+                decode_responses=True)
 
 
-try:
-    mysql_connection = mysql.connector.connect(
-    host=os.getenv("DB_HOST"),
-    port=os.getenv("DB_PORT"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_DATABASE")
-    )
+sub = r.pubsub("printer")
 
-except Exception as e: 
-    logging.error("Failed to connect to Database")
-    exit(1)
 
-if mysql_connection.is_connected():
-    logging.info("Connected to Database")
+def validate_message()
 
-else:
-    logging.error("Failed to connect to Database")
-    exit()
+for message in sub.listen():
+    if message['type'] == 'message':
+        
+        logging.info(f"Received Message: {message['data']}")
+        if message['data'] == "print":
+            logging.info("Printing Dockets")
+            print_jobs(message['data'])
+        else:
+            logging.info("Invalid Message")
+
+
 
 
 two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd", "AJH", "Skykes Haulage"]
 two_dockets_trucks = ["XQ28VM", "XN56UJ", "XO82LW"]
-def job():
-    # logging.info("Checking Database")
-    mysql_connection.start_transaction(isolation_level='READ COMMITTED')
-    # Create a new cursor
-    cursor = mysql_connection.cursor(dictionary=True)
+def print_jobs(jobs):
 
-    # Query the MySQL database
-    cursor.execute(f"""SELECT * FROM `Detailed Records` WHERE printed = 0""")
-    rows = cursor.fetchall()
-    jobnumbers_to_update = []
-    if(len(rows) != 0):
-        logging.info(f"Found {len(rows)} record{'s' if len(rows) > 1 else ''} to print")
-        # Iterate over each record
-        for record in rows:
-            logging.info(f"Printing JobNumber: {record['JobNumber']}")
+    # Iterate over each record
+    for record in jobs:
+        logging.info(f"Printing JobNumber: {record['JobNumber']}")
 
-            #@Todo check each record for errors
-            try:
-                if(record['haulier_name'] in two_dockets or record['truck_name'] in two_dockets_trucks):
-                    logging.info(f"Printing Driver Docket for JobNumber: {record['JobNumber']}")
-                    print_driver_docket(record)
-                    logging.info(f"Printing Customer Docket for JobNumber: {record['JobNumber']}")
-                    print_plant_docket(record)
-                else:
-                    logging.info(f"Printing Single Docket ${record['haulier_name']}, JobNumber: {record['JobNumber']}")
-                    print_plant_docket(record)
-                jobnumber = record['JobNumber']
-                logging.info("Finished Printing, Updating Database")
+        #@Todo check each record for errors
+        try:
+            if(record['haulier_name'] in two_dockets or record['truck_name'] in two_dockets_trucks):
+                logging.info(f"Printing Driver Docket for JobNumber: {record['JobNumber']}")
+                print_driver_docket(record)
+                logging.info(f"Printing Customer Docket for JobNumber: {record['JobNumber']}")
+                print_plant_docket(record)
+            else:
+                logging.info(f"Printing Single Docket ${record['haulier_name']}, JobNumber: {record['JobNumber']}")
+                print_plant_docket(record)
+            jobnumber = record['JobNumber']
+            logging.info("Finished Printing, Updating Database")
 
-                cursor.execute('UPDATE record SET printed = 1 WHERE JobNumber = %s', (jobnumber,))
 
-            except:
-                logging.error(f"Failed to print JobNumber: {record['JobNumber']}")
-                continue
+        except:
+            logging.error(f"Failed to print JobNumber: {record['JobNumber']}")
+            continue
 
        
-    mysql_connection.commit()
-    cursor.close()
-
+  
 
 def print_docket_details(printer: Usb, record) -> None:
     """"Prints the docket details
@@ -190,18 +180,5 @@ def print_plant_docket(record):
         print(e, flush=True)
 
 
-
-
-
-
-
-logging.info("Starting Scheduler")
-# Schedule the job every 10 seconds
-schedule.every(10).seconds.do(job)
-
-# Keep the script running
-while True:
-    schedule.run_pending()
-    time.sleep(1)
 
 
