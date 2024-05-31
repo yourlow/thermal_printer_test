@@ -25,4 +25,4 @@ def is_cover_closed(printer: Usb):
         return False
     
 
-def check_paper(printer: Usb)
+# def check_paper(printer: Usb)

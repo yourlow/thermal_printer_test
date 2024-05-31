@@ -1,6 +1,6 @@
-import mysql.connector
 import schedule
 import time
+import json
 from escpos.printer import Usb
 from escpos.constants import PAPER_PART_CUT
 import os
@@ -8,24 +8,25 @@ from dotenv import load_dotenv
 from datetime import datetime
 import logging
 import printer_status
+import redis
 
 load_dotenv()
 
 def check_env():
-    if os.getenv("DB_HOST") is None:
-        logging.error("DB_HOST not set")
+    if os.getenv("REDIS_HOST") is None:
+        logging.error("REDIS_HOST not set")
         exit(1)
-    if os.getenv("DB_PORT") is None:
-        logging.error("DB_PORT not set")
+    if os.getenv("REDIS_PORT") is None:
+        logging.error("REDIS_PORT not set")
         exit(1)
-    if os.getenv("DB_USER") is None:
-        logging.error("DB_USER not set")
+    if os.getenv("REDIS_USER") is None:
+        logging.error("REDIS_USER not set")
         exit(1)
-    if os.getenv("DB_PASSWORD") is None:
-        logging.error("DB_PASSWORD not set")
+    if os.getenv("REDIS_PASSWORD") is None:
+        logging.error("REDIS_PASSWORD not set")
         exit(1)
-    if os.getenv("DB_DATABASE") is None:
-        logging.error("DB_DATABASE not set")
+    if os.getenv("REDIS_QUEUE") is None:
+        logging.error("REDIS_DATABASE not set")
         exit(1)
 
 
@@ -33,7 +34,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
                     level=logging.INFO, 
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-logging.info("Starting Printer Service")
+logging.info("Starting Kingscliff Sands Thermal Printer")
 # Determine the directory of the current script
 script_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,75 +43,73 @@ logoImage = os.path.join(script_directory, './logoReduced.jpg')
 
 mysql_connection = None
 
-logging.info("Connecting to Database")
 
 check_env()
 
 
 
 
-try:
-    mysql_connection = mysql.connector.connect(
-    host=os.getenv("DB_HOST"),
-    port=os.getenv("DB_PORT"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_DATABASE")
-    )
+def getJobFields(jobDetail, field: str, name: str, backup: str):
+    if jobDetail["job"].get(field):
+        return jobDetail["job"][field].get(name, jobDetail["job"][backup])
+    else:
+        return jobDetail["job"][backup]
 
-except Exception as e: 
-    logging.error("Failed to connect to Database")
-    exit(1)
-
-if mysql_connection.is_connected():
-    logging.info("Connected to Database")
-
-else:
-    logging.error("Failed to connect to Database")
-    exit()
+def getJobDetailFields(jobDetail, field: str, name: str, backup: str):
+    if jobDetail.get(field):
+        return jobDetail[field].get(name, jobDetail[backup])
+    else:
+        return jobDetail[backup]
 
 
-two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd", "AJH", "Skykes Haulage"]
-two_dockets_trucks = ["XQ28VM", "XN56UJ", "XO82LW"]
-def job():
-    # logging.info("Checking Database")
-    mysql_connection.start_transaction(isolation_level='READ COMMITTED')
-    # Create a new cursor
-    cursor = mysql_connection.cursor(dictionary=True)
+def check_redis(redis_client):
+    try:
+        ping = redis_client.ping()
+        print(ping)
+        print("Redis client is connected")
+    except redis.exceptions.ConnectionError:
+        print("Error: Redis client is not connected")
+        exit(1)
 
-    # Query the MySQL database
-    cursor.execute(f"""SELECT * FROM `Detailed Records` WHERE printed = 0""")
-    rows = cursor.fetchall()
-    jobnumbers_to_update = []
-    if(len(rows) != 0):
-        logging.info(f"Found {len(rows)} record{'s' if len(rows) > 1 else ''} to print")
-        # Iterate over each record
-        for record in rows:
-            logging.info(f"Printing JobNumber: {record['JobNumber']}")
+logging.info("Connecting to Redis")
+redis_client = redis.Redis(host=os.getenv("REDIS_HOST"),
+                port=os.getenv("REDIS_PORT"),
+                decode_responses=True)
 
-            #@Todo check each record for errors
-            try:
-                if(record['haulier_name'] in two_dockets or record['truck_name'] in two_dockets_trucks):
-                    logging.info(f"Printing Driver Docket for JobNumber: {record['JobNumber']}")
-                    print_driver_docket(record)
-                    logging.info(f"Printing Customer Docket for JobNumber: {record['JobNumber']}")
-                    print_plant_docket(record)
-                else:
-                    logging.info(f"Printing Single Docket ${record['haulier_name']}, JobNumber: {record['JobNumber']}")
-                    print_plant_docket(record)
-                jobnumber = record['JobNumber']
-                logging.info("Finished Printing, Updating Database")
 
-                cursor.execute('UPDATE record SET printed = 1 WHERE JobNumber = %s', (jobnumber,))
+check_redis(redis_client)
 
-            except:
-                logging.error(f"Failed to print JobNumber: {record['JobNumber']}")
-                continue
+
+
+
+
+def print_job(jobs):
+    two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd", "AJH", "Skykes Haulage"]
+    two_dockets_trucks = ["XQ28VM", "XN56UJ", "XO82LW"]
+
+
+    logging.info(f"Printing JobNumber: {jobs['JobNumber']}")
+
+    #@Todo check each record for errors
+    try:
+        if(jobs['haulier_name'] in two_dockets or jobs['truck_name'] in two_dockets_trucks):
+            logging.info(f"Printing Driver Docket for JobNumber: {jobs['JobNumber']}")
+            print_driver_docket(jobs)
+            logging.info(f"Printing Customer Docket for JobNumber: {jobs['JobNumber']}")
+            print_plant_docket(jobs)
+        else:
+            logging.info(f"Printing Single Docket ${jobs['haulier_name']}, JobNumber: {jobs['JobNumber']}")
+            print_plant_docket(jobs)
+        jobnumber = jobs['JobNumber']
+        logging.info("Finished Printing")
+
+
+    except:
+        logging.error(f"Failed to print JobNumber: {jobs['JobNumber']}")
+       
 
        
-    mysql_connection.commit()
-    cursor.close()
-
+  
 
 def print_docket_details(printer: Usb, record) -> None:
     """"Prints the docket details
@@ -125,6 +124,9 @@ def print_docket_details(printer: Usb, record) -> None:
     printer.text(f"Haulier: {record['haulier_name']}\n")
     printer.text(f"Truck: {record['truck_name']}\n")
     printer.text(f"CA:{record['note']}\n")
+
+    if(record["purchaseOrder"]):
+        printer.text(f"PO: {record['purchaseOrder']}\n")
 
 
 def print_lines(printer: Usb, spacing: int) -> None:
@@ -190,18 +192,70 @@ def print_plant_docket(record):
         print(e, flush=True)
 
 
+def subscribe_to_channel(channel, client):
+    pubsub = redis_client.pubsub()
+    pubsub.subscribe(channel)
+    return pubsub
+
+def listen_to_messages(pubsub):
+    print(f"Listening for messages on Redis channel: {os.getenv('REDIS_QUEUE')}")
+    try:
+        for message in pubsub.listen():
+            if message and message['type'] == 'message':
+                jobDetail = json.loads(message['data'])
+                # print(jobDetail)
+                docketNumber = jobDetail["docketNumber"]
+                unitWeight = jobDetail["amount"]
+
+                pickupTime = jobDetail["startTime"]
+
+                customer = getJobFields(jobDetail, "customer", "name", "customerName")
+                haulier = getJobFields(jobDetail, "haulier", "name", "haulierName")
+                truck = getJobFields(jobDetail, "truck", "rego", "truckName")
+
+                source = getJobDetailFields(jobDetail, "source", "name", "sourceName")
+                material = getJobDetailFields(jobDetail, "material", "name", "materialName")
+                destination = getJobDetailFields(jobDetail, "destination", "name", "destinationName")
+
+                batchNumber = jobDetail["batchNumber"]
+
+                purchaseOrder = jobDetail.get("purchaseOrder", None)
+
+                # print(purchaseOrder, flush=True)
+
+                # print("Printing")
+                # print(f"Job ID: {jobDetail['jobId']}")
+                # print(f"Docket Number: {docketNumber}")
+                # print(f"Pickup Time: {pickupTime}")
+                # print(f"Customer: {customer}")
+                # print(f"Haulier: {haulier}")
+                # print(f"Truck: {truck}")
+                # print(f"Source: {source}")
+                # print(f"Material: {material}")
+                # print(f"Destination: {destination}")
+                # print(f"Batch Number: {batchNumber}")
+                # print(f"Purchase Order: {purchaseOrder}")
 
 
+                job = {
+                    "JobNumber": docketNumber,
+                    "EndTimeDate": pickupTime,
+                    "UnitWeight": unitWeight,
+                    "product_name": material,
+                    "customer_name": customer,
+                    "destination_name": destination,
+                    "haulier_name": haulier,
+                    "truck_name": truck,
+                    "note": batchNumber,
+                    "purchaseOrder": purchaseOrder
+                }
+                # exit()
+                print_job(job)
 
+    except Exception as e:
+        print(f"Error: {e}")
+        exit(1)
 
-
-logging.info("Starting Scheduler")
-# Schedule the job every 10 seconds
-schedule.every(10).seconds.do(job)
-
-# Keep the script running
-while True:
-    schedule.run_pending()
-    time.sleep(1)
-
-
+# Example usage
+pubsub = subscribe_to_channel(os.getenv("REDIS_QUEUE"), redis_client)
+listen_to_messages(pubsub)
