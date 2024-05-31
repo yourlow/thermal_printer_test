@@ -1,6 +1,6 @@
 appdirs==1.4.4
 argcomplete==3.1.1
-mysql-connector-python==8.1.0
+async-timeout==4.0.3
 Pillow==10.0.0
 protobuf==4.21.12
 pypng==0.20220715.0
@@ -10,6 +10,7 @@ python-escpos==2.2.0
 pyusb==1.2.1
 PyYAML==6.0.1
 qrcode==7.4.2
+redis==5.0.4
 schedule==1.2.0
 six==1.16.0
 typing_extensions==4.7.1
