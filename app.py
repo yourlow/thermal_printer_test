@@ -199,62 +199,64 @@ def subscribe_to_channel(channel, client):
 
 def listen_to_messages(pubsub):
     print(f"Listening for messages on Redis channel: {os.getenv('REDIS_QUEUE')}")
-    try:
-        for message in pubsub.listen():
-            if message and message['type'] == 'message':
-                jobDetail = json.loads(message['data'])
-                # print(jobDetail)
-                docketNumber = jobDetail["docketNumber"]
-                unitWeight = jobDetail["amount"]
+    while True:
+        try:
+            for message in pubsub.listen():
+                if message and message['type'] == 'message':
+                    jobDetail = json.loads(message['data'])
+                    docketNumber = jobDetail["docketNumber"]
+                    unitWeight = jobDetail["amount"]
 
-                pickupTime = jobDetail["startTime"]
+                    pickupTime = jobDetail["startTime"]
 
-                customer = getJobFields(jobDetail, "customer", "name", "customerName")
-                haulier = getJobFields(jobDetail, "haulier", "name", "haulierName")
-                truck = getJobFields(jobDetail, "truck", "rego", "truckName")
+                    customer = getJobFields(jobDetail, "customer", "name", "customerName")
+                    haulier = getJobFields(jobDetail, "haulier", "name", "haulierName")
+                    truck = getJobFields(jobDetail, "truck", "rego", "truckName")
 
-                source = getJobDetailFields(jobDetail, "source", "name", "sourceName")
-                material = getJobDetailFields(jobDetail, "material", "name", "materialName")
-                destination = getJobDetailFields(jobDetail, "destination", "name", "destinationName")
+                    source = getJobDetailFields(jobDetail, "source", "name", "sourceName")
+                    material = getJobDetailFields(jobDetail, "material", "name", "materialName")
+                    destination = getJobDetailFields(jobDetail, "destination", "name", "destinationName")
 
-                batchNumber = jobDetail["batchNumber"]
+                    batchNumber = jobDetail["batchNumber"]
 
-                purchaseOrder = jobDetail.get("purchaseOrder", None)
+                    purchaseOrder = jobDetail.get("purchaseOrder", None)
 
-                # print(purchaseOrder, flush=True)
+                    print(purchaseOrder, flush=True)
 
-                # print("Printing")
-                # print(f"Job ID: {jobDetail['jobId']}")
-                # print(f"Docket Number: {docketNumber}")
-                # print(f"Pickup Time: {pickupTime}")
-                # print(f"Customer: {customer}")
-                # print(f"Haulier: {haulier}")
-                # print(f"Truck: {truck}")
-                # print(f"Source: {source}")
-                # print(f"Material: {material}")
-                # print(f"Destination: {destination}")
-                # print(f"Batch Number: {batchNumber}")
-                # print(f"Purchase Order: {purchaseOrder}")
+                    # print("Printing")
+                    # print(f"Job ID: {jobDetail['jobId']}")
+                    # print(f"Docket Number: {docketNumber}")
+                    # print(f"Pickup Time: {pickupTime}")
+                    # print(f"Customer: {customer}")
+                    # print(f"Haulier: {haulier}")
+                    # print(f"Truck: {truck}")
+                    # print(f"Source: {source}")
+                    # print(f"Material: {material}")
+                    # print(f"Destination: {destination}")
+                    # print(f"Batch Number: {batchNumber}")
+                    # print(f"Purchase Order: {purchaseOrder}")
 
+                    job = {
+                        "JobNumber": docketNumber,
+                        "EndTimeDate": pickupTime,
+                        "UnitWeight": unitWeight,
+                        "product_name": material,
+                        "customer_name": customer,
+                        "destination_name": destination,
+                        "haulier_name": haulier,
+                        "truck_name": truck,
+                        "note": batchNumber,
+                        "purchaseOrder": purchaseOrder
+                    }
+                    # exit()
+                    # print_job(job)
+        except redis.ConnectionError:
+            print("Redis connection error. Reconnecting...")
+            exit(1)
+        except Exception as e:
+            print(f"Error: {e}")
+            exit(1)
 
-                job = {
-                    "JobNumber": docketNumber,
-                    "EndTimeDate": pickupTime,
-                    "UnitWeight": unitWeight,
-                    "product_name": material,
-                    "customer_name": customer,
-                    "destination_name": destination,
-                    "haulier_name": haulier,
-                    "truck_name": truck,
-                    "note": batchNumber,
-                    "purchaseOrder": purchaseOrder
-                }
-                # exit()
-                print_job(job)
-
-    except Exception as e:
-        print(f"Error: {e}")
-        exit(1)
 
 # Example usage
 pubsub = subscribe_to_channel(os.getenv("REDIS_QUEUE"), redis_client)
