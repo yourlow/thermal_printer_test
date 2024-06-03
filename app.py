@@ -68,16 +68,17 @@ def check_redis(redis_client):
         ping = redis_client.ping()
         print(f"Redis client is connected {ping}", flush=True)
     except redis.exceptions.ConnectionError:
-        print("Error: Redis client is not connected", flush=True    )
+        print("Error: Redis client is not connected", flush=True)
         exit(1)
 
 
 
 logging.info("Connecting to Redis")
-redis_client = redis.Redis(host=os.getenv("REDIS_HOST"),
-                port=os.getenv("REDIS_PORT"),
-                decode_responses=True,
-                socket_keepalive=True)
+
+pool = redis.ConnectionPool(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), decode_responses=True)
+
+redis_client = redis.Redis(connection_pool=pool,
+                socket_keepalive=True, health_check_interval=10)
 
 
 check_redis(redis_client)
@@ -211,7 +212,6 @@ def listen_to_messages(pubsub, poll_interval=1):
     print(f"Listening for messages on Redis channel: {os.getenv('REDIS_QUEUE')}")
     while True:
         try:
-            
             message = pubsub.get_message()
             if message and message['type'] == 'message':
                 jobDetail = json.loads(message['data'])
