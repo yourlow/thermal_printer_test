@@ -261,7 +261,7 @@ def listen_to_messages(pubsub, poll_interval=1):
                 # exit()
                 print_job(job)
             time.sleep(poll_interval)
-            check_redis(redis_client)
+            # check_redis(redis_client)
 
         except Exception as e:
             print(f"Error: {e}", flush=True)
