@@ -71,10 +71,13 @@ def check_redis(redis_client):
         print("Error: Redis client is not connected", flush=True    )
         exit(1)
 
+
+
 logging.info("Connecting to Redis")
 redis_client = redis.Redis(host=os.getenv("REDIS_HOST"),
                 port=os.getenv("REDIS_PORT"),
-                decode_responses=True)
+                decode_responses=True,
+                socket_keepalive=True)
 
 
 check_redis(redis_client)
