@@ -209,6 +209,7 @@ def listen_to_messages(pubsub, poll_interval=1):
     print(f"Listening for messages on Redis channel: {os.getenv('REDIS_QUEUE')}")
     while True:
         try:
+            
             message = pubsub.get_message()
             if message and message['type'] == 'message':
                 jobDetail = json.loads(message['data'])
@@ -258,7 +259,8 @@ def listen_to_messages(pubsub, poll_interval=1):
                 # exit()
                 print_job(job)
             time.sleep(poll_interval)
-            # print('tick', flush=True)
+            check_redis(redis_client)
+
         except Exception as e:
             print(f"Error: {e}", flush=True)
             exit(1)
