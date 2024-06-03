@@ -249,7 +249,7 @@ def listen_to_messages(pubsub):
                         "purchaseOrder": purchaseOrder
                     }
                     # exit()
-                    # print_job(job)
+                    print_job(job)
         except redis.ConnectionError:
             print("Redis connection error. Reconnecting...")
             exit(1)
