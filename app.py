@@ -258,6 +258,7 @@ def listen_to_messages(pubsub, poll_interval=1):
                 # exit()
                 print_job(job)
             time.sleep(poll_interval)
+            print('tick', flush=True)
         except Exception as e:
             print(f"Error: {e}", flush=True)
             exit(1)
