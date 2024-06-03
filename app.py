@@ -66,10 +66,10 @@ def getJobDetailFields(jobDetail, field: str, name: str, backup: str):
 def check_redis(redis_client):
     try:
         ping = redis_client.ping()
-        print(ping)
-        print("Redis client is connected")
+        # print(ping)
+        print("Redis client is connected", flush=True)
     except redis.exceptions.ConnectionError:
-        print("Error: Redis client is not connected")
+        print("Error: Redis client is not connected", flush=True    )
         exit(1)
 
 logging.info("Connecting to Redis")
