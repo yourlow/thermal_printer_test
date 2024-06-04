@@ -207,7 +207,7 @@ def subscribe_to_channel(channel, client):
     pubsub.subscribe(channel)
     return pubsub
 
-def listen_to_messages(poll_interval=10):
+def listen_to_messages(poll_interval=1):
     print(f"Listening for messages on Redis channel: {os.getenv('REDIS_QUEUE')}")
     while True:
 
@@ -217,7 +217,7 @@ def listen_to_messages(poll_interval=10):
         try:
             message = redis_client.rpop("printer")
             if message:
-                jobDetail = json.loads(message['data'])
+                jobDetail = json.loads(message)
                 docketNumber = jobDetail["docketNumber"]
                 unitWeight = jobDetail["amount"]
 
