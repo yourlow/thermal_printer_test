@@ -212,7 +212,7 @@ def listen_to_messages(poll_interval=10):
     while True:
 
 
-        redis_client = redis.Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), decode_responses=True
+        redis_client = redis.Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), decode_responses=True,
                 socket_keepalive=True, health_check_interval=10)
         try:
             message = redis_client.rpop("printer")
