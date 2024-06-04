@@ -7,7 +7,6 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 import logging
-import printer_status
 import redis
 import pytz
 
@@ -75,9 +74,9 @@ def check_redis(redis_client):
 
 logging.info("Connecting to Redis")
 
-pool = redis.ConnectionPool(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), decode_responses=True)
+pool = redis.ConnectionPool()
 
-redis_client = redis.Redis(connection_pool=pool,
+redis_client = redis.Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), decode_responses=True
                 socket_keepalive=True, health_check_interval=10)
 
 
@@ -208,12 +207,16 @@ def subscribe_to_channel(channel, client):
     pubsub.subscribe(channel)
     return pubsub
 
-def listen_to_messages(pubsub, poll_interval=1):
+def listen_to_messages(poll_interval=10):
     print(f"Listening for messages on Redis channel: {os.getenv('REDIS_QUEUE')}")
     while True:
+
+
+        redis_client = redis.Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), decode_responses=True
+                socket_keepalive=True, health_check_interval=10)
         try:
-            message = pubsub.get_message()
-            if message and message['type'] == 'message':
+            message = redis_client.rpop("printer")
+            if message:
                 jobDetail = json.loads(message['data'])
                 docketNumber = jobDetail["docketNumber"]
                 unitWeight = jobDetail["amount"]
@@ -260,14 +263,13 @@ def listen_to_messages(pubsub, poll_interval=1):
                 }
                 # exit()
                 print_job(job)
-            time.sleep(poll_interval)
             # check_redis(redis_client)
 
+            redis_client.close()
+            time.sleep(poll_interval)
         except Exception as e:
             print(f"Error: {e}", flush=True)
             exit(1)
-            continue
 
 # Example usage
-pubsub = subscribe_to_channel(os.getenv("REDIS_QUEUE"), redis_client)
-listen_to_messages(pubsub)
+listen_to_messages(redis_client)
