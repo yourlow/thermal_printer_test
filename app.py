@@ -272,4 +272,4 @@ def listen_to_messages(poll_interval=10):
             exit(1)
 
 # Example usage
-listen_to_messages(redis_client)
+listen_to_messages()
