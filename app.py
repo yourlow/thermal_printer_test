@@ -87,6 +87,7 @@ check_redis(redis_client)
 
 
 def print_job(jobs):
+    three_dockets = ["Fastway"]
     two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd", "AJH", "Skykes Haulage"]
     two_dockets_trucks = ["XQ28VM", "XN56UJ", "XO82LW"]
 
@@ -95,7 +96,15 @@ def print_job(jobs):
 
     #@Todo check each record for errors
     try:
-        if(jobs['haulier_name'] in two_dockets or jobs['truck_name'] in two_dockets_trucks):
+        if(jobs['haulier_name'] in three_dockets):
+            logging.info(f"Printing Driver Docket for JobNumber: {jobs['JobNumber']}")
+            print_driver_docket(jobs)
+            logging.info(f"Printing Driver Docket for JobNumber: {jobs['JobNumber']}")
+            print_driver_docket(jobs)
+            logging.info(f"Printing Customer Docket for JobNumber: {jobs['JobNumber']}")
+            print_plant_docket(jobs)
+
+        elif(jobs['haulier_name'] in two_dockets or jobs['truck_name'] in two_dockets_trucks):
             logging.info(f"Printing Driver Docket for JobNumber: {jobs['JobNumber']}")
             print_driver_docket(jobs)
             logging.info(f"Printing Customer Docket for JobNumber: {jobs['JobNumber']}")
