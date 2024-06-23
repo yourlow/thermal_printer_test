@@ -88,7 +88,7 @@ check_redis(redis_client)
 
 def print_job(jobs):
     three_dockets_trucks = ["CRD090"]
-    two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd", "AJH", "Skykes Haulage"]
+    two_dockets = ["Tweed Coast Sand & Gravel", "Quintear Pty Ltd", "AJH", "Skykes Haulage", "Holcim"]
     two_dockets_trucks = ["XQ28VM", "XN56UJ", "XO82LW"]
 
 
