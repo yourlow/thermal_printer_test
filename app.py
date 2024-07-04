@@ -55,7 +55,7 @@ def getJobFields(jobDetail, field: str, name: str, backup: str):
     else:
         return jobDetail["job"][backup]
 
-def getJobDetailFields(jobDetail, field: str, name: str, backup: str):
+def getJobDetailFields(jobDetail, field: str, name: str, backup: str) -> str:
     if jobDetail.get(field):
         return jobDetail[field].get(name, jobDetail[backup])
     else:
@@ -238,6 +238,12 @@ def listen_to_messages(poll_interval=1):
                 source = getJobDetailFields(jobDetail, "source", "name", "sourceName")
                 material = getJobDetailFields(jobDetail, "material", "name", "materialName")
                 destination = getJobDetailFields(jobDetail, "destination", "name", "destinationName")
+
+                try:
+                    if("topsoil" in material.lower()):
+                        return
+                except:
+                    pass
 
                 batchNumber = jobDetail["batchNumber"]
 
