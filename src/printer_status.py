@@ -3,12 +3,6 @@ from escpos.constants import PAPER_PART_CUT
 from dotenv import load_dotenv
 import logging
 
-def check_printer(printer: Usb):
-    pass
-
-
-
-
 
 def is_cover_closed(printer: Usb):
     """Checks if the printer cover is closed"""

@@ -12,8 +12,6 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str
     REDIS_QUEUE: str
 
-    LOG_FILE: str
-
     LOGO_FILEPATH: str
 
     IDVENDOR: int
@@ -34,6 +32,12 @@ class Settings(BaseSettings):
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
+    
+    @validator('IDVENDOR', 'IDPRODUCT', 'IN_EP', 'OUT_EP', pre=True)
+    def convert_hex_to_int(cls, v):
+        if isinstance(v, str) and v.startswith('0x'):
+            return int(v, 16)
+        return v
 
 try:
     settings = Settings()
