@@ -1,0 +1,1 @@
+docker build . -t gitea.yourlow.xyz/matthew/thermal-printer:latest && docker push gitea.yourlow.xyz/matthew/thermal-printer:latest 
