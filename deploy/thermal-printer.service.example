@@ -1,0 +1,13 @@
+[Unit]
+Description=Docker Sync Thermal Printer Service
+After=network.target
+
+[Service]
+ExecStart=/home/matthew/app/thermal-printer/venv/bin/python3 /home/matthew/app/thermal-printer/src/app.py
+Restart=always
+User=matthew
+WorkingDirectory=/home/matthew/app/thermal-printer
+EnvironmentFile=//home/matthew/app/thermal-printer/.env
+
+[Install]
+WantedBy=multi-user.target
